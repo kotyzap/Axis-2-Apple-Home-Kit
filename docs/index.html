@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>4Xs Apple Home Kit — Axis camera as a native HomeKit accessory</title>
+<meta name="description" content="Expose an Axis IP camera as a native Apple HomeKit accessory directly from the camera — live video, snapshots, and a motion sensor driven by VMD4/AOA. A CamScripter microapp." />
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f4f6f9;
+    --bg-card: #ffffff;
+    --border: #e2e6ec;
+    --text: #1c2430;
+    --text-soft: #56627a;
+    --accent: #d4361d;        /* Axis red */
+    --accent-soft: #fbe7e3;
+    --code-bg: #f4f6f9;
+    --shadow: 0 1px 3px rgba(20,30,50,.08), 0 8px 24px rgba(20,30,50,.06);
+    --radius: 14px;
+  }
+  [data-theme="dark"] {
+    --bg: #0f141b;
+    --bg-soft: #161d27;
+    --bg-card: #161d27;
+    --border: #28323f;
+    --text: #e8edf4;
+    --text-soft: #9aa7b8;
+    --accent: #ff5a3c;
+    --accent-soft: #2a1a16;
+    --code-bg: #0b1016;
+    --shadow: 0 1px 3px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    transition: background .2s ease, color .2s ease;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 22px; }
+
+  header.nav {
+    position: sticky; top: 0; z-index: 30;
+    backdrop-filter: saturate(1.4) blur(10px);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner { display: flex; align-items: center; gap: 14px; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.02em; }
+  .brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  .nav-links { margin-left: auto; display: flex; gap: 20px; align-items: center; }
+  .nav-links a { color: var(--text-soft); font-size: 14px; font-weight: 500; }
+  .nav-links a:hover { color: var(--text); text-decoration: none; }
+  .theme-btn {
+    border: 1px solid var(--border); background: var(--bg-card); color: var(--text);
+    width: 38px; height: 38px; border-radius: 10px; cursor: pointer; font-size: 16px;
+    display: inline-flex; align-items: center; justify-content: center; transition: .15s;
+  }
+  .theme-btn:hover { border-color: var(--accent); }
+  @media (max-width: 680px) { .nav-links a:not(.gh) { display: none; } }
+
+  .hero { padding: 70px 0 36px; }
+  .pill {
+    display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--accent);
+    background: var(--accent-soft); padding: 6px 12px; border-radius: 999px; margin-bottom: 18px;
+  }
+  h1 { font-size: clamp(2rem, 5vw, 3.1rem); line-height: 1.1; letter-spacing: -.03em; margin: 0 0 16px; }
+  .lead { font-size: 1.2rem; color: var(--text-soft); max-width: 660px; margin: 0 0 28px; }
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 11px;
+    font-weight: 600; font-size: 15px; cursor: pointer; transition: .15s; border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { filter: brightness(1.05); text-decoration: none; }
+  .btn-ghost { background: var(--bg-card); color: var(--text); border-color: var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); text-decoration: none; }
+
+  figure { margin: 0; }
+  figcaption { color: var(--text-soft); font-size: 13px; margin-top: 8px; text-align: center; }
+
+  /* Wide (landscape) live-view screenshots */
+  .wide {
+    width: 100%; border-radius: var(--radius); border: 1px solid var(--border);
+    box-shadow: var(--shadow); background: var(--bg-soft); display: block; cursor: zoom-in;
+  }
+  .hero-media { margin-top: 40px; }
+
+  /* Portrait iPhone screenshots, shown in a phone frame */
+  .phone {
+    width: 100%; max-width: 250px; aspect-ratio: 1179 / 2556; object-fit: cover;
+    border-radius: 26px; border: 5px solid #11151c;
+    box-shadow: var(--shadow); background: var(--bg-soft); display: block; margin: 0 auto; cursor: zoom-in;
+  }
+  [data-theme="dark"] .phone { border-color: #000; }
+
+  section { padding: 48px 0; border-top: 1px solid var(--border); }
+  h2 { font-size: 1.7rem; letter-spacing: -.02em; margin: 0 0 10px; }
+  .section-sub { color: var(--text-soft); margin: 0 0 28px; max-width: 660px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px; box-shadow: var(--shadow);
+  }
+  .card .ic { font-size: 22px; margin-bottom: 10px; }
+  .card h3 { margin: 0 0 6px; font-size: 1.05rem; }
+  .card p { margin: 0; color: var(--text-soft); font-size: 14px; }
+
+  .phones { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 26px 18px; }
+  .step .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff;
+    font-size: 13px; font-weight: 700; margin-right: 6px;
+  }
+  .step figcaption { font-weight: 500; color: var(--text); }
+
+  .wides { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 720px) { .wides { grid-template-columns: 1fr; } }
+
+  .shots-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 720px) { .shots-2 { grid-template-columns: 1fr; } }
+  .shots-2 img { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); cursor: zoom-in; display: block; }
+
+  .media-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; }
+  @media (max-width: 720px) { .media-row { grid-template-columns: 1fr; } }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; overflow-x: auto; font-size: 13.5px; line-height: 1.5;
+  }
+  code { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; }
+  p code, li code, td code { background: var(--code-bg); padding: 2px 6px; border-radius: 6px; font-size: .9em; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  th { color: var(--text-soft); font-weight: 600; }
+  td:first-child code { color: var(--accent); }
+
+  .note {
+    border-left: 3px solid var(--accent); background: var(--accent-soft);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; font-size: 14.5px; color: var(--text);
+  }
+
+  footer { border-top: 1px solid var(--border); padding: 30px 0 50px; color: var(--text-soft); font-size: 14px; }
+  .footer-inner { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; justify-content: space-between; }
+
+  /* Lightbox */
+  #lb {
+    position: fixed; inset: 0; z-index: 100; display: none;
+    background: rgba(0,0,0,.86); align-items: center; justify-content: center; padding: 24px; cursor: zoom-out;
+  }
+  #lb.open { display: flex; }
+  #lb img { max-width: 95vw; max-height: 92vh; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <div class="brand"><span class="dot"></span> 4Xs Apple Home Kit</div>
+    <nav class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#pairing">Pairing</a>
+      <a href="#inhome">In Home</a>
+      <a href="#motion">Motion</a>
+      <a href="#install">Install</a>
+      <a class="gh" href="#" id="repoLink">GitHub</a>
+      <button class="theme-btn" id="themeBtn" title="Toggle light / dark" aria-label="Toggle theme">🌙</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero" style="border-top:none;">
+    <div class="wrap">
+      <span class="pill">CamScripter microapp · v2.2.0</span>
+      <h1>Your Axis camera, native in Apple Home.</h1>
+      <p class="lead">
+        Expose any Axis IP camera as a real HomeKit accessory — live video, snapshots, and a
+        motion sensor driven by the camera's own VMD4 and Object Analytics. No hub, no bridge box,
+        no cloud. It runs <em>on the camera</em> via CamScripter and HAP‑NodeJS.
+      </p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#install">Get started →</a>
+        <a class="btn btn-ghost" href="#pairing">See it in action</a>
+      </div>
+
+      <div class="hero-media">
+        <figure>
+          <img class="wide" data-img="IMG_4411.PNG" alt="Full-screen live view of AXIS M1137 in the Apple Home app" />
+          <figcaption>Full‑screen live view of an AXIS M1137, streaming straight from the camera into the Apple Home app.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <h2>What you get</h2>
+      <p class="section-sub">Everything is served straight from the camera — the microapp speaks the HomeKit Accessory Protocol directly.</p>
+      <div class="grid">
+        <div class="card"><div class="ic">🏠</div><h3>Native HomeKit camera</h3><p>Pairs from the Home app with a QR code or PIN. No Homebridge and no extra hardware.</p></div>
+        <div class="card"><div class="ic">🎥</div><h3>Live SRTP video</h3><p>Repackages the camera's own H.264 RTSP stream as SRTP. Zero‑transcode passthrough (<code>-c:v copy</code>) by default, with a libx264 fallback.</p></div>
+        <div class="card"><div class="ic">📸</div><h3>Snapshots</h3><p>VAPIX JPEG snapshots with Basic <em>and</em> Digest auth, plus short‑lived caching so HomeKit polling doesn't hammer the camera.</p></div>
+        <div class="card"><div class="ic">🚶</div><h3>Two motion sensors</h3><p>VMD4 and Object Analytics each publish their <em>own</em> HomeKit Motion Sensor, so you get separate notifications and automation triggers per detector — each with its own hold/debounce window.</p></div>
+        <div class="card"><div class="ic">🔊</div><h3>OPUS audio</h3><p>Audio alongside the video stream — iOS requires an advertised audio config even for video‑only cameras.</p></div>
+        <div class="card"><div class="ic">🔒</div><h3>Stable identity</h3><p>A persisted HAP identity so the accessory survives restarts and stays paired.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ui">
+    <div class="wrap">
+      <h2>One settings screen, light &amp; dark</h2>
+      <p class="section-sub">The whole thing is configured from a single panel inside CamScripter — including a live pairing QR you scan straight into the Home app.</p>
+      <div class="shots-2">
+        <figure>
+          <img data-img="ui-light.png" alt="Settings UI, light theme" />
+          <figcaption>Light theme</figcaption>
+        </figure>
+        <figure>
+          <img data-img="ui-dark.png" alt="Settings UI, dark theme" />
+          <figcaption>Dark theme</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="pairing">
+    <div class="wrap">
+      <h2>Pairing, step by step</h2>
+      <p class="section-sub">From an unpaired camera to a live tile in the Home app — scanned straight from the CamScripter settings QR.</p>
+      <div class="phones">
+        <figure class="step"><img class="phone" data-img="IMG_4385.PNG" alt="Home app add menu" /><figcaption><span class="num">1</span>Tap + → Add Accessory</figcaption></figure>
+        <figure class="step"><img class="phone" data-img="IMG_4387.PNG" alt="Scan setup code" /><figcaption><span class="num">2</span>Scan the pairing QR</figcaption></figure>
+        <figure class="step"><img class="phone" data-img="IMG_4388.PNG" alt="Add camera to home" /><figcaption><span class="num">3</span>Add the camera to Home</figcaption></figure>
+        <figure class="step"><img class="phone" data-img="IMG_4389.PNG" alt="Uncertified accessory prompt" /><figcaption><span class="num">4</span>Allow it (Add Anyway)</figcaption></figure>
+        <figure class="step"><img class="phone" data-img="IMG_4391.PNG" alt="Choose camera room" /><figcaption><span class="num">5</span>Pick a room</figcaption></figure>
+        <figure class="step"><img class="phone" data-img="IMG_4392.PNG" alt="Name the camera" /><figcaption><span class="num">6</span>Name the camera</figcaption></figure>
+        <figure class="step"><img class="phone" data-img="IMG_4394.PNG" alt="Camera added to home" /><figcaption><span class="num">7</span>Done — added to Home</figcaption></figure>
+      </div>
+      <p class="note" style="margin-top:24px;">
+        HomeKit flags the camera as an <strong>"Uncertified Accessory"</strong> because it isn't part of the paid
+        MFi program — tap <em>Add Anyway</em> and it works normally. The accessory page shows Manufacturer
+        <em>Axis Communications</em>, the real model and firmware, and <em>HomeKit Certified: No</em>.
+      </p>
+    </div>
+  </section>
+
+  <section id="inhome">
+    <div class="wrap">
+      <h2>In the Home app</h2>
+      <p class="section-sub">Both cameras show up as live tiles and full‑screen streams, right alongside any other HomeKit camera.</p>
+      <div class="wides" style="margin-bottom:24px;">
+        <figure><img class="wide" data-img="IMG_4381.PNG" alt="AXIS M1137 live view" /><figcaption>AXIS M1137 — live</figcaption></figure>
+        <figure><img class="wide" data-img="IMG_4383.PNG" alt="AXIS Q1656 live view" /><figcaption>AXIS Q1656 — live</figcaption></figure>
+      </div>
+      <div class="phones">
+        <figure><img class="phone" data-img="IMG_4409.PNG" alt="Two cameras in the Security view" /><figcaption>Two cameras in Security</figcaption></figure>
+        <figure><img class="phone" data-img="IMG_4402.PNG" alt="Camera tiles on the Home tab" /><figcaption>Live tiles on the Home tab</figcaption></figure>
+        <figure><img class="phone" data-img="IMG_4400.PNG" alt="Accessory settings" /><figcaption>Accessory settings</figcaption></figure>
+        <figure><img class="phone" data-img="IMG_4401.PNG" alt="Accessory details" /><figcaption>Model, firmware &amp; status</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="motion">
+    <div class="wrap">
+      <h2>Motion detection</h2>
+      <p class="section-sub">The app publishes the camera's VMD4 and Object Analytics detections as <strong>two separate HomeKit Motion Sensors</strong> — “VMD Motion Sensor” and “AOA Motion Sensor” — each driving its own <code>MotionDetected</code> characteristic. Here a motion badge has fired in the Security view.</p>
+      <div class="media-row">
+        <figure><img class="phone" data-img="IMG_4416.PNG" alt="Motion detected badge in the Home app Security view" /><figcaption>Motion triggered on the Balcony camera</figcaption></figure>
+        <div>
+          <p class="note">
+            HomeKit is <strong>stateful, not an event log</strong>. It tracks the current state
+            (<code>Motion Detected</code> / <code>Clear</code>) and a "last activity" timestamp — it does
+            <strong>not</strong> count events.
+          </p>
+          <p style="color:var(--text-soft);font-size:14.5px;">
+            To get push alerts you must enable them per sensor: long‑press it →
+            <em>Status &amp; Notifications</em> — so you can alert on VMD but not AOA, or vice versa. For a
+            real event timeline you need HomeKit Secure Video (iCloud+) or a third‑party app like Eve. The
+            <code>motion_hold_s</code> setting keeps each sensor “detected” for N seconds after its last event
+            so a flapping detector doesn't fire a storm of notifications.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2>Install</h2>
+      <p class="section-sub">Build the package, upload it to CamScripter, and pair it in the Home app.</p>
+      <ol style="margin:0 0 24px; padding-left:20px; color:var(--text-soft);">
+        <li>Build the package zip (see commands below).</li>
+        <li>In the camera UI: <strong>CamScripter → Apps → Upload package</strong>.</li>
+        <li>Open the settings UI and enter camera credentials + HomeKit options.</li>
+        <li>In iOS <strong>Home → + → Add Accessory</strong>, scan the QR (or enter the PIN).</li>
+      </ol>
+<pre><code>npm install
+npm run zip:package      # generic CamScripter package
+npm run zip:arm64        # ARTPEC-8 / 9 (aarch64) — bundles ffmpeg
+npm run zip:armhf        # ARTPEC-6 / 7 (armv7)   — bundles ffmpeg</code></pre>
+
+      <h2 style="margin-top:40px;">Configuration</h2>
+      <p class="section-sub">Settings are validated with zod and stored in <code>settings.json</code>. Key HomeKit options:</p>
+      <table>
+        <thead><tr><th>Setting</th><th>Default</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>name</code></td><td>Axis Camera</td><td>Accessory name in Home</td></tr>
+          <tr><td><code>pincode</code></td><td>031-45-154</td><td>Pairing PIN, <code>XXX-XX-XXX</code></td></tr>
+          <tr><td><code>live_stream</code></td><td>true</td><td><code>true</code> = SRTP live view, <code>false</code> = snapshot‑only</td></tr>
+          <tr><td><code>video_mode</code></td><td>copy</td><td><code>copy</code> passthrough or <code>transcode</code> (libx264)</td></tr>
+          <tr><td><code>stream_resolution</code></td><td>1920x1080</td><td>—</td></tr>
+          <tr><td><code>stream_fps</code></td><td>30</td><td>1–60</td></tr>
+          <tr><td><code>audio_enabled</code></td><td>true</td><td>OPUS audio in the stream</td></tr>
+          <tr><td><code>motion_vmd</code></td><td>true</td><td>AXIS Video Motion Detection source</td></tr>
+          <tr><td><code>motion_aoa</code></td><td>true</td><td>AXIS Object Analytics source</td></tr>
+          <tr><td><code>motion_hold_s</code></td><td>5</td><td>Keep "detected" N s after last event (0–300)</td></tr>
+          <tr><td><code>debug</code></td><td>false</td><td>Verbose HAP + ffmpeg logging</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap footer-inner">
+    <span>4Xs Apple Home Kit · © Pavel Kotyza</span>
+    <span>Built with CamScripter · HAP‑NodeJS · TypeScript</span>
+  </div>
+</footer>
+
+<div id="lb"><img alt="" /></div>
+
+<script>
+  // Theme: respect saved choice, else system preference. Light is the default.
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('themeBtn');
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var theme = saved || (prefersDark ? 'dark' : 'light');
+    apply(theme);
+    btn.addEventListener('click', function () {
+      theme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      apply(theme);
+      try { localStorage.setItem('theme', theme); } catch (e) {}
+    });
+    function apply(t) {
+      root.setAttribute('data-theme', t);
+      btn.textContent = t === 'dark' ? '☀️' : '🌙';
+    }
+  })();
+
+  // Point the GitHub link at the repo when served from GitHub Pages.
+  (function () {
+    var m = location.hostname.match(/^([^.]+)\.github\.io$/);
+    if (m) {
+      var seg = location.pathname.split('/').filter(Boolean)[0];
+      document.getElementById('repoLink').href = 'https://github.com/' + m[1] + (seg ? '/' + seg : '');
+    } else {
+      document.getElementById('repoLink').style.display = 'none';
+    }
+  })();
+
+  // Resolve images from img/, with a labelled placeholder fallback.
+  document.querySelectorAll('img[data-img]').forEach(function (img) {
+    var name = img.getAttribute('data-img');
+    var src = 'img/' + name;
+    var probe = new Image();
+    probe.onload = function () { img.src = src; };
+    probe.onerror = function () {
+      var ph = document.createElement('div');
+      ph.style.cssText = 'border:1px dashed var(--border);border-radius:14px;padding:30px;text-align:center;color:var(--text-soft);font-size:13px;background:var(--bg-soft);';
+      ph.textContent = 'Missing img/' + name;
+      img.replaceWith(ph);
+    };
+    probe.src = src;
+  });
+
+  // Lightbox.
+  (function () {
+    var lb = document.getElementById('lb');
+    var lbImg = lb.querySelector('img');
+    document.addEventListener('click', function (e) {
+      var t = e.target;
+      if (t.tagName === 'IMG' && t.src && (t.classList.contains('phone') || t.classList.contains('wide') || t.closest('.shots-2'))) {
+        lbImg.src = t.src; lb.classList.add('open');
+      } else if (t === lb || t === lbImg) {
+        lb.classList.remove('open');
+      }
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') lb.classList.remove('open'); });
+  })();
+</script>
+</body>
+</html>
