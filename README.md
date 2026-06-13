@@ -7,15 +7,22 @@ Expose an **Axis IP camera as a native Apple HomeKit accessory** — directly fr
 Add the camera in the Apple **Home** app and you get a live camera tile, snapshots, and two motion sensors — one for AXIS Video Motion Detection (VMD4) and one for Object Analytics (AOA) — including motion notifications and HomeKit automations.
 
 <p align="center">
-  <img src="docs/img/4Xs-AppleHomeKit-Light.png" alt="CamScripter settings UI (light)" width="48%" />
-  <img src="docs/img/4Xs-AppleHomeKit-Dark.png" alt="CamScripter settings UI (dark)" width="48%" />
+  <img src="docs/img/IMG_4411.PNG" alt="Full-screen live view of an AXIS M1137 in the Apple Home app" width="78%" />
 </p>
-<p align="center">
-  <img src="docs/img/IMG_4411.PNG" alt="Live view in the Apple Home app" width="48%" />
-  <img src="docs/img/IMG_4416.PNG" alt="Motion detected in the Security view" width="24%" />
-</p>
+<p align="center"><sub>Full-screen live view of an AXIS M1137, streaming straight from the camera into the Apple Home app.</sub></p>
 
-> A full screenshot walkthrough (pairing, live tiles, motion) is on the project page in [`docs/`](docs/index.html).
+## See it in action
+
+A quick walkthrough — pairing the camera, then live video and motion alarms landing in the Apple Home app.
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=UpButRx2cKg">
+    <img src="https://img.youtube.com/vi/UpButRx2cKg/maxresdefault.jpg" alt="Watch the 4Xs Apple Home Kit demo on YouTube" width="78%" />
+  </a>
+</p>
+<p align="center"><sub><a href="https://www.youtube.com/watch?v=UpButRx2cKg">Watch the demo on YouTube</a></sub></p>
+
+> A full visual walkthrough — pairing, live tiles, and motion — also lives on the project page in [`docs/`](docs/index.html).
 
 ## Features
 
@@ -26,13 +33,73 @@ Add the camera in the Apple **Home** app and you get a live camera tile, snapsho
 - **Audio** — OPUS audio alongside the video stream (iOS requires an advertised audio config even for video-only cameras).
 - **Stable identity** — a persisted HAP "MAC" so the accessory survives restarts and stays paired.
 
-## How motion works (and what Apple does with it)
+## The settings screen — light & dark
 
-The app subscribes to the camera's VAPIX RuleEngine event stream and publishes VMD4 and AOA detections as **two separate HomeKit Motion Sensors**, each driving its own `MotionDetected` characteristic. This lets you enable notifications or build automations on one detector independently of the other.
+The whole thing is configured from a single panel inside CamScripter, including a live pairing QR you scan straight into the Home app.
 
-Important: HomeKit is **stateful, not an event log**. It only tracks the current state (`Motion Detected` / `Clear`) and a "last activity" timestamp — it does **not** count events. To get notifications you must enable them per sensor in the Home app: long-press the sensor → settings → **Status and Notifications**. For an event timeline/history you need a HomeKit Secure Video camera (iCloud+) or a third-party app like Eve.
+<p align="center">
+  <img src="docs/img/4Xs-AppleHomeKit-Light.png" alt="CamScripter settings UI (light theme)" width="48%" />
+  <img src="docs/img/4Xs-AppleHomeKit-Dark.png" alt="CamScripter settings UI (dark theme)" width="48%" />
+</p>
 
-The `motion_hold_s` setting keeps each sensor's `MotionDetected` true for N seconds after its last active event, debouncing detector flapping so you don't get a storm of alerts.
+## Pairing, step by step
+
+From an unpaired camera to a live tile in the Home app — scanned straight from the CamScripter settings QR.
+
+<table>
+  <tr>
+    <td align="center" width="25%"><img src="docs/img/IMG_4385.PNG" alt="Home app Add Accessory menu" width="150" /><br/><b>1.</b> Tap <b>+</b> &rarr; Add Accessory</td>
+    <td align="center" width="25%"><img src="docs/img/IMG_4387.PNG" alt="Scanning the pairing QR" width="150" /><br/><b>2.</b> Scan the pairing QR</td>
+    <td align="center" width="25%"><img src="docs/img/IMG_4388.PNG" alt="Add the camera to Home" width="150" /><br/><b>3.</b> Add the camera to Home</td>
+    <td align="center" width="25%"><img src="docs/img/IMG_4389.PNG" alt="Uncertified accessory prompt" width="150" /><br/><b>4.</b> Allow it (<b>Add Anyway</b>)</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/img/IMG_4391.PNG" alt="Choose a room for the camera" width="150" /><br/><b>5.</b> Pick a room</td>
+    <td align="center"><img src="docs/img/IMG_4392.PNG" alt="Name the camera" width="150" /><br/><b>6.</b> Name the camera</td>
+    <td align="center"><img src="docs/img/IMG_4394.PNG" alt="Camera added to Home" width="150" /><br/><b>7.</b> Done — added to Home</td>
+    <td></td>
+  </tr>
+</table>
+
+> **"Uncertified Accessory"?** HomeKit flags the camera this way because it isn't part of Apple's paid MFi program — tap **Add Anyway** and it works normally. The accessory page shows Manufacturer *Axis Communications*, the real model and firmware, and *HomeKit Certified: No*.
+
+## In the Home app
+
+Cameras show up as live tiles and full-screen streams, right alongside any other HomeKit camera.
+
+<p align="center">
+  <img src="docs/img/IMG_4381.PNG" alt="AXIS M1137 live view in the Home app" width="48%" />
+  <img src="docs/img/IMG_4383.PNG" alt="AXIS Q1656 live view in the Home app" width="48%" />
+</p>
+<p align="center"><sub>AXIS M1137 (left) and AXIS Q1656 (right), live.</sub></p>
+
+<table>
+  <tr>
+    <td align="center" width="25%"><img src="docs/img/IMG_4409.PNG" alt="Two cameras in the Security view" width="160" /><br/>Two cameras in Security</td>
+    <td align="center" width="25%"><img src="docs/img/IMG_4402.PNG" alt="Camera tiles on the Home tab" width="160" /><br/>Live tiles on the Home tab</td>
+    <td align="center" width="25%"><img src="docs/img/IMG_4400.PNG" alt="Accessory settings" width="160" /><br/>Accessory settings</td>
+    <td align="center" width="25%"><img src="docs/img/IMG_4401.PNG" alt="Accessory model, firmware and status" width="160" /><br/>Model, firmware &amp; status</td>
+  </tr>
+</table>
+
+## Motion events & alarms
+
+The app subscribes to the camera's VAPIX RuleEngine event stream and publishes VMD4 and AOA detections as **two separate HomeKit Motion Sensors** — “VMD Motion Sensor” and “AOA Motion Sensor” — each driving its own `MotionDetected` characteristic. Because they're independent sensors, you can alert on or automate from one detector without the other.
+
+<p align="center">
+  <img src="docs/img/IMG_4416.PNG" alt="Motion-detected alarm badge in the Home app Security view" width="40%" />
+</p>
+<p align="center"><sub>A motion alarm firing in the Security view.</sub></p>
+
+**Turning on alarms (push notifications).** HomeKit does not notify by default. Enable it **per sensor**: in the Home app, long-press the sensor → **Settings** (gear) → **Status and Notifications** → turn on **Allow Notifications**. Do it once for VMD and once for AOA — so you can, say, be alerted on Object Analytics but stay quiet on raw motion.
+
+**Hold / debounce.** The `motion_hold_s` setting keeps each sensor's `MotionDetected` true for N seconds after its last active event, so a detector that flaps on and off doesn't fire a storm of notifications. Set it to `0` to report raw on/off.
+
+**Automations.** Each sensor is a first-class HomeKit trigger, so a detection can drive any HomeKit automation — turn on a light, run a scene, set a thermostat, or trigger other accessories — and you can build separate automations for VMD vs. AOA.
+
+**What HomeKit tracks (and what it doesn't).** HomeKit is **stateful, not an event log**: it only knows the current state (`Motion Detected` / `Clear`) plus a "last activity" timestamp — it does **not** count events. For a real event timeline or recorded clips you need a HomeKit Secure Video camera (iCloud+) or a third-party app like Eve.
+
+> Each sensor only reports when its detector is actually doing work — the matching app (AXIS Video Motion Detection or AXIS Object Analytics) must be running with at least one profile/scenario configured on the camera.
 
 ## Installation
 
@@ -77,8 +144,8 @@ Settings are validated with [zod](https://zod.dev) (`src/schema.ts`) and stored 
 | `audio_enabled` | `true` | OPUS audio in the stream |
 | `video_mode` | `copy` | `copy` (passthrough) or `transcode` (libx264 fallback) |
 | `stream_bitrate_kbps` | `0` | 0 = camera default |
-| `motion_vmd` | `true` | enable AXIS Video Motion Detection source |
-| `motion_aoa` | `true` | enable AXIS Object Analytics source |
+| `motion_vmd` | `true` | enable AXIS Video Motion Detection sensor |
+| `motion_aoa` | `true` | enable AXIS Object Analytics sensor |
 | `motion_hold_s` | `5` | keep "detected" N s after last event (0–300); debounce |
 | `debug` | `false` | verbose logging (`DEBUG=HAP-NodeJS:*`, ffmpeg verbose) |
 
