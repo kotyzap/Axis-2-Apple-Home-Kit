@@ -7,8 +7,8 @@ Expose an **Axis IP camera as a native Apple HomeKit accessory** — directly fr
 Add the camera in the Apple **Home** app and you get a live camera tile, snapshots, and two motion sensors — one for AXIS Video Motion Detection (VMD4) and one for Object Analytics (AOA) — including motion notifications and HomeKit automations.
 
 <p align="center">
-  <img src="docs/img/ui-light.png" alt="CamScripter settings UI (light)" width="48%" />
-  <img src="docs/img/ui-dark.png" alt="CamScripter settings UI (dark)" width="48%" />
+  <img src="docs/img/4Xs-AppleHomeKit-Light.png" alt="CamScripter settings UI (light)" width="48%" />
+  <img src="docs/img/4Xs-AppleHomeKit-Dark.png" alt="CamScripter settings UI (dark)" width="48%" />
 </p>
 <p align="center">
   <img src="docs/img/IMG_4411.PNG" alt="Live view in the Apple Home app" width="48%" />
@@ -30,20 +30,20 @@ Add the camera in the Apple **Home** app and you get a live camera tile, snapsho
 
 The app subscribes to the camera's VAPIX RuleEngine event stream and publishes VMD4 and AOA detections as **two separate HomeKit Motion Sensors**, each driving its own `MotionDetected` characteristic. This lets you enable notifications or build automations on one detector independently of the other.
 
-Important: HomeKit is **stateful, not an event log**. It only tracks the current state (`Motion Detected` / `Clear`) and a "last activity" timestamp — it does **not** count events. To get notifications you must enable them per accessory in the Home app: long-press the sensor → settings → **Status and Notifications**. For an event timeline/history you need a HomeKit Secure Video camera (iCloud+) or a third-party app like Eve.
+Important: HomeKit is **stateful, not an event log**. It only tracks the current state (`Motion Detected` / `Clear`) and a "last activity" timestamp — it does **not** count events. To get notifications you must enable them per sensor in the Home app: long-press the sensor → settings → **Status and Notifications**. For an event timeline/history you need a HomeKit Secure Video camera (iCloud+) or a third-party app like Eve.
 
 The `motion_hold_s` setting keeps each sensor's `MotionDetected` true for N seconds after its last active event, debouncing detector flapping so you don't get a storm of alerts.
 
 ## Installation
 
-1. Build the package zip:
+1. Build the package zip — pick the bundle matching your camera's architecture (each includes the right ffmpeg binary):
 
    ```bash
    npm install
-   npm run zip:package      # generic CamScripter package
-   # or, architecture-specific bundles that include the ffmpeg binary:
-   npm run zip:arm64        # ARTPEC-8 / ARTPEC-9 (aarch64)
-   npm run zip:armhf        # ARTPEC-6 / ARTPEC-7 (armv7)
+   npm run zip:arm64        # ARTPEC-8 / ARTPEC-9 (aarch64) — e.g. Q1656
+   npm run zip:armhf        # ARTPEC-6 / ARTPEC-7 (armv7)   — e.g. M1137
+   # optional: one universal package (larger — bundles both ffmpeg binaries):
+   # npm run zip:package
    ```
 
 2. In the camera UI, open **CamScripter → Apps → Upload package** and select the generated zip.
