@@ -1,0 +1,23 @@
+{
+    "name": "fourxs_apple_home_kit",
+    "version": "2.2.0",
+    "description": "Expose this Axis camera as an Apple HomeKit accessory via HAP-NodeJS running in CamScripter. 4Xs Apple Home Kit v2.2 — snapshots + live video + separate VMD and AOA motion sensors with per-source alert hold/debounce, on ARTPEC-7/8 (armhf, arm64).",
+    "main": "dist/bootstrap.js",
+    "scripts": {
+        "build": "tsc",
+        "try": "npm run build && cross-env PERSISTENT_DATA_PATH=./localdata/ node dist/bootstrap.js",
+        "zip:package": "npm run build && node node_modules/camstreamerlib/CreatePackage.js -i",
+        "zip:arm64": "sh bin/make-zip.sh arm64",
+        "zip:armhf": "sh bin/make-zip.sh armhf"
+    },
+    "dependencies": {
+        "camstreamerlib": "^3.0.0",
+        "hap-nodejs": "^1.1.0",
+        "zod": "^3.23.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "cross-env": "^7.0.3",
+        "typescript": "^5.4.0"
+    }
+}

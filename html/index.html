@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>4Xs Apple Home Kit</title>
+<style>
+    :root[data-theme="light"] {
+        --bg: #f5f6f8; --card: #ffffff; --text: #1c1e21; --muted: #65676b;
+        --accent: #ffcc33; --border: #d5d8dc; --input-bg: #ffffff;
+    }
+    :root[data-theme="dark"] {
+        --bg: #18191a; --card: #242526; --text: #e4e6eb; --muted: #b0b3b8;
+        --accent: #ffcc33; --border: #3a3b3c; --input-bg: #3a3b3c;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 20px 16px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    h1 { font-size: 1.3rem; margin: 0; }
+    .title { display: flex; flex-direction: column; gap: 2px; }
+    .title-row { display: flex; align-items: center; gap: 10px; }
+    .ver { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.3px; color: #1c1e21; background: var(--accent); border-radius: 999px; padding: 2px 8px; line-height: 1.4; }
+    .tagline { font-size: 0.78rem; color: var(--muted); }
+
+    /* Two big halves above the fold; collapse to one column on narrow screens. */
+    .halves { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+    .col { display: flex; flex-direction: column; gap: 16px; }
+    @media (max-width: 900px) { .halves { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+    h2 { font-size: 1rem; margin: 0 0 12px; }
+    label { display: flex; align-items: flex-end; min-height: 2.4em; font-size: 0.8rem; color: var(--muted); margin: 0 0 4px; line-height: 1.2; }
+    input, select { width: 100%; height: 38px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); font-size: 0.95rem; box-sizing: border-box; }
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 14px; margin-top: 8px; align-items: end; }
+    .row.cols3 { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 1100px) { .row.cols3 { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 420px) { .row, .row.cols3 { grid-template-columns: 1fr 1fr; } }
+    button { background: var(--accent); color: #1c1e21; border: none; border-radius: 6px; padding: 10px 22px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+    button.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 6px 12px; font-size: 0.85rem; }
+    .saverow { display: flex; align-items: center; gap: 4px; }
+    #status { margin-left: 12px; font-size: 0.9rem; color: var(--muted); }
+    .hint { font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+    .steps { margin: 0; padding-left: 4px; list-style: none; }
+    .steps li { margin: 9px 0; font-size: 0.88rem; line-height: 1.4; padding-left: 28px; position: relative; }
+    .badge { position: absolute; left: 0; top: 2px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border); display: inline-block; }
+    li.done .badge { border-color: #2e9e44; background: #2e9e44; }
+    li.done .badge::after { content: "✓"; color: #fff; font-size: 12px; position: absolute; left: 3px; top: -1px; }
+    li.active .badge { border-color: var(--accent); background: var(--accent); }
+    li.active .badge::after { content: "✓"; color: #1c1e21; font-size: 12px; position: absolute; left: 3px; top: -1px; }
+    li.done { color: var(--muted); }
+    code { background: var(--bg); padding: 1px 5px; border-radius: 4px; }
+    .qr { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+    .qr-box { background: #fff; padding: 12px; border-radius: 8px; border: 1px solid var(--border); width: 196px; height: 196px; display: flex; align-items: center; justify-content: center; }
+    .qr-box img, .qr-box canvas, .qr-box table { display: block; }
+    .qr-info { font-size: 0.85rem; color: var(--muted); flex: 1; min-width: 180px; }
+    .qr-info .pin { font-size: 1.6rem; font-weight: 700; color: var(--text); letter-spacing: 1px; margin: 2px 0 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <header>
+        <div class="title">
+            <div class="title-row"><h1>4Xs Apple Home Kit</h1><span class="ver">v2.2.0</span></div>
+            <span class="tagline">Snapshots + live video on ARTPEC-7/8 (armhf, arm64)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+            <a href='https://ko-fi.com/B3S720JCU6' target='_blank'><img height='36' style='border:0px;height:36px;display:block' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+            <button class="ghost" id="themeToggle">🌙 Dark</button>
+        </div>
+    </header>
+
+    <div class="halves">
+        <!-- LEFT HALF: setup guide + pairing QR -->
+        <div class="col">
+            <div class="card" id="guide">
+                <h2>Setup Guide</h2>
+                <ol class="steps">
+                    <li id="step1"><span class="badge"></span> <strong>Enter camera credentials</strong> and Save. A viewer-level account is enough — the app reads snapshots/RTSP via 127.0.0.1.</li>
+                    <li id="step2"><span class="badge"></span> <strong>App publishes the HomeKit accessory.</strong> It restarts and announces itself via mDNS (look for "published" in the CamScripter log).</li>
+                    <li id="step3"><span class="badge"></span> <strong>Pair in the Home app</strong> (iPhone on the same LAN): <em>+ → Add Accessory → More options…</em> → select the camera → ignore the "uncertified" warning → enter PIN <code id="guide_pin">0314-5154</code>.</li>
+                    <li id="step4"><span class="badge"></span> <strong>Done.</strong> The tile shows live snapshots; tap for live stream (if enabled). To re-pair, delete the <code>hap/</code> folder in package data and restart.</li>
+                </ol>
+                <div class="qr">
+                    <div class="qr-box" id="qr"></div>
+                    <div class="qr-info">
+                        Scan with your iPhone camera, or in the Home app tap <em>+ → Add Accessory</em> and point it at this code.
+                        <div class="pin" id="qr_pin">0314-5154</div>
+                        If scanning doesn't find it, choose <em>More options…</em> and enter the PIN manually.
+                    </div>
+                </div>
+                <p class="hint" id="guide_status"></p>
+            </div>
+        </div>
+
+        <!-- RIGHT HALF: configuration -->
+        <div class="col">
+            <div class="card">
+                <h2>Camera (VAPIX) credentials</h2>
+                <p class="hint">The app runs on this camera and reads snapshots via 127.0.0.1 — only a user/password is needed (a viewer-level account is enough).</p>
+                <div class="row">
+                    <div><label>User</label><input id="cam_user" /></div>
+                    <div><label>Password</label><input id="cam_pass" type="password" /></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>HomeKit</h2>
+                <div class="row">
+                    <div><label>Accessory name</label><input id="hk_name" /></div>
+                    <div><label>Pairing PIN (XXXX-XXXX)</label><input id="hk_pin" placeholder="0314-5154" /></div>
+                    <div><label>HAP port</label><input id="hk_port" type="number" /></div>
+                    <div>
+                        <label>Snapshot resolution</label>
+                        <select id="hk_res">
+                            <option selected>1920x1080</option>
+                            <option>1280x720</option>
+                            <option>640x360</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row cols3">
+                    <div>
+                        <label>Live stream (tap-to-view)</label>
+                        <select id="hk_live"><option value="true" selected>Enabled (ffmpeg SRTP)</option><option value="false">Snapshot only</option></select>
+                    </div>
+                    <div>
+                        <label>Video mode</label>
+                        <select id="hk_vmode"><option value="copy" selected>Copy (no transcoding)</option><option value="transcode">Transcode (fallback)</option></select>
+                    </div>
+                    <div>
+                        <label>Audio (camera mic/line-in)</label>
+                        <select id="hk_audio"><option value="true" selected>Enabled</option><option value="false">Disabled</option></select>
+                    </div>
+                    <div>
+                        <label>Stream resolution</label>
+                        <select id="hk_stream_res">
+                            <option selected>1920x1080</option>
+                            <option>1280x720</option>
+                            <option>640x360</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Stream FPS</label>
+                        <select id="hk_fps"><option>30</option><option>25</option><option>15</option><option>10</option></select>
+                    </div>
+                    <div>
+                        <label>Bitrate (kbps, 0 = default)</label>
+                        <input id="hk_bitrate" type="number" min="0" step="100" value="0" />
+                    </div>
+                    <div>
+                        <label>Motion: AXIS Video Motion Detection</label>
+                        <select id="hk_vmd"><option value="true" selected>Enabled</option><option value="false">Disabled</option></select>
+                    </div>
+                    <div>
+                        <label>Motion: AXIS Object Analytics</label>
+                        <select id="hk_aoa"><option value="true" selected>Enabled</option><option value="false">Disabled</option></select>
+                    </div>
+                    <div>
+                        <label>Motion hold time (s)</label>
+                        <input id="hk_hold" type="number" min="0" max="300" step="1" value="5" />
+                    </div>
+                    <div>
+                        <label>Debug logging</label>
+                        <select id="hk_debug"><option value="false" selected>Off</option><option value="true">Verbose (HAP + app)</option></select>
+                    </div>
+                </div>
+                <p class="hint">VMD and AOA each appear as their <strong>own</strong> HomeKit Motion Sensor ("VMD Motion Sensor" / "AOA Motion Sensor"), so you get separate notifications and automation triggers per detector. The detection apps must be running with at least one profile/scenario configured on the camera. <strong>Hold time</strong> keeps a sensor "detected" for a few seconds after motion stops, so a flapping detector doesn't spam Home notifications (0 = report raw on/off).</p>
+                <p class="hint">To get push alerts: in the Home app open this Motion Sensor → Settings (gear) → <em>Status and Notifications</em> → enable <em>Allow Notifications</em>.</p>
+            </div>
+
+            <div class="saverow">
+                <button id="save">Save</button><span id="status"></span>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="qrcode.min.js"></script>
+<script src="index.js"></script>
+</body>
+</html>

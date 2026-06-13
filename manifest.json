@@ -1,0 +1,9 @@
+{
+    "package_name": "fourxs_apple_home_kit",
+    "package_menu_name": "4Xs Apple Home Kit",
+    "package_version": "2.2.0",
+    "vendor": "Pavel Kotyza",
+    "required_camscripter_version": "1.5.3",
+    "required_camscripter_rbi_version": "1.4.0",
+    "ui_link": "/local/camscripter/package/fourxs_apple_home_kit/index.html"
+}
