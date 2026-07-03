@@ -1,4 +1,4 @@
-# 4Xs Apple Home Kit
+# Axis 2 Apple Home Kit
 
 Expose an **Axis IP camera as a native Apple HomeKit accessory** — directly from the camera, with no hub, bridge box, or cloud service. It runs as a [CamScripter](https://camstreamer.com/camscripter) microapp on the camera itself, using [HAP-NodeJS](https://github.com/homebridge/HAP-NodeJS) to speak the HomeKit Accessory Protocol.
 
